@@ -1,0 +1,28 @@
+services:
+  ndi-timelapse:
+    build: .
+    container_name: construction-timelapse
+    restart: unless-stopped
+    network_mode: host
+    tty: true
+    stdin_open: true
+    environment:
+      - TZ=America/New_York
+      - NDI_SOURCE_NAME=Your-Camera-Name (CAM)
+      - NDI_SOURCE_URL=192.168.1.100:5961
+      - NDILIB_DISCOVERY_SERVERS=192.168.1.1:5959
+      - OUTPUT_DIR=/output
+      - LOG_DIR=/logs
+      - CAPTURE_INTERVAL=15
+      - START_HOUR=5
+      - END_HOUR=21
+      - RECORD_SECONDS=5
+      - JPEG_QUALITY=95
+    volumes:
+      - ./output:/output
+      - ./logs:/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
