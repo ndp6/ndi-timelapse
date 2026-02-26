@@ -59,6 +59,28 @@ def check_ffmpeg():
         return False
 
 
+def get_next_sequence_number(daily_dir):
+    """Get the next sequence number for the current day"""
+    sequence_file = os.path.join(daily_dir, ".sequence")
+    
+    try:
+        if os.path.exists(sequence_file):
+            with open(sequence_file, 'r') as f:
+                sequence = int(f.read().strip())
+        else:
+            sequence = 0
+        
+        # Increment and save
+        next_sequence = sequence + 1
+        with open(sequence_file, 'w') as f:
+            f.write(str(next_sequence))
+        
+        return next_sequence
+    except Exception as e:
+        logger.warning(f"Error managing sequence number: {e}, starting at 1")
+        return 1
+
+
 def extract_jpeg_from_mov(mov_file, jpeg_file, quality=95, frame_num=120):
     """Extract specific frame from MOV file as JPEG using FFmpeg"""
     try:
@@ -117,9 +139,12 @@ def capture_frame():
         daily_dir = os.path.join(OUTPUT_DIR, date_folder)
         os.makedirs(daily_dir, exist_ok=True)
         
+        # Get next sequence number
+        sequence = get_next_sequence_number(daily_dir)
+        
         temp_base = f"/tmp/capture_{timestamp}"
         temp_mov = f"{temp_base}.mov"
-        final_jpeg = os.path.join(daily_dir, f"frame_{timestamp}.jpg")
+        final_jpeg = os.path.join(daily_dir, f"frame_{timestamp}_{sequence:04d}.jpg")
         
         # Build command
         cmd = [NDI_RECORD, '-i', NDI_SOURCE_NAME, '-u', NDI_SOURCE_URL, '-o', temp_base]
